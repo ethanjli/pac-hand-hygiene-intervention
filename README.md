@@ -11,9 +11,33 @@ To run the MQTT broker server, edit `deploy/config/broker.conf` and then run
 
 These instructions are for setting up a Raspberry Pi to deploy a visual alert client.
 
-### Preparation
+### Pre-Configured Raspberry Pi Setup
 
-You will need to install some packages on the Raspberry Pi, as follows:
+TODO
+
+### Manually Configured Raspberry Pi Setup
+
+If you are starting with a fresh Raspbian Lite image on an SD card, you will need to configure
+it to prepare for deployment.
+
+First, you will need to use the `raspi-config` tool to change the password of the pi user,
+set the locale to `en_US UTF-8`, keep the timezone at UTC,
+set the keyboard layout to `English (US)`, change the hostname of the Raspberry Pi,
+set a wifi network to connect to, and set the Raspberry Pi to wait for an internet
+connection upon startup.
+
+If you want to configure it to connect to other wifi networks which are not available during
+preparation, you will need to edit the `/etc/wpa_supplicant/wpa_supplicant.conf` file.
+
+You should also create any additional user accounts you will want, using the `adduser` command.
+For example, to make a `foobar` user and give it `sudo` permissions:
+```
+# log in as pac
+sudo adduser foobar
+sudo adduser foobar sudo
+```
+
+Then, you will need to install some packages on the Raspberry Pi, as follows:
 ```
 sudo apt-get update
 sudo apt-get upgrade
@@ -21,17 +45,11 @@ sudo apt-get install git python3-pip
 sudo apt-get install vim byobu wicd-curses # optional, but makes your life easier
 ```
 
-You will need to use the `raspi-config` tool to change the password of the pi user,
-set the locale to `en_US UTF-8`, set the keyboard layout to `English (US)`,
-change the hostname of the Raspberry Pi, and set the Raspberry Pi to wait for an
-internet connection upon startup.
-
-You will need to edit the `/etc/wpa_supplicant/wpa_supplicant.conf` configuration
-file to connect to wi-fi if you are deploying the Raspberry Pi with a Wi-Fi connection.
-
 For security, you should change the username of the pi user to something else.
-This will involve temporarily enabling the `root` account and using `usermod`. For example,
-to change it to `pac`:
+If you didn't create any additional user accounts, you will need to temporarily enable
+the `root` account so that you can use `usermod`; otherwise, you can just use `usermod`
+from one of the other user accounts you made. For example, to change the `pi` account
+to `pac` by temporarily enabling the `root` account:
 ```
 # log in as pi, then:
 sudo passwd -l root # set a password for the root account to enable it!
@@ -39,15 +57,32 @@ logout # log out of the pi account!
 # then log in as root, using the password you just set, then:
 usermod -l pac pi # rename the pi account to pac!
 usermod -m -d /home/pac pac # rename the pi home folder!
-logout # log out of the pac account!
+logout # log out of the root account!
 # then log in as pac, then:
 sudo passwd -l root # set an empty password for the root account to disable it!
+```
+Or to make the same change by signing into an alternate account named `foobar`:
+```
+# log in as foobar, then:
+sudo usermod -l pac pi # rename the pi account to pac!
+sudo usermod -m -d /home/pac pac # rename the pi home folder!
+logout # log out of the foobar account!
+# then log in as pac
 ```
 
 You will need to have a USB drive handy. It will need to have a `settings.json` file
 in the root of the drive. For an example file, refer to `deploy/config/settings_cloudmqtt.json`.
 The `pi_username` parameter in the `settings.json` file should match the username
 of the pi user on the Raspberry Pi.
+
+### Post-Configuration Information
+
+Regardless of how you set up the Raspberry Pi's configuration, you may need to get some information
+about the device for network administration requirements.
+To find the MAC addresses of the Raspberry Pi's network interfaces, run `ifconfig`
+and examine the `ether` fields.
+To find the Serial number of the Raspberry Pi's CPU, run `cat /proc/cpuinfo` and
+examine the `Serial` field, which should be the last line of output.
 
 ### Client Hardware Setup
 Connect a NeoPixel Stick to the Raspberry Pi as follows:
